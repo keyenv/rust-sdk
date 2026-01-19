@@ -1,0 +1,30 @@
+[package]
+name = "keyenv"
+version = "1.0.0"
+edition = "2021"
+authors = ["KeyEnv <support@keyenv.dev>"]
+description = "Official Rust SDK for KeyEnv - Secrets management made simple"
+license = "MIT"
+repository = "https://github.com/keyenv/keyenv-rust"
+homepage = "https://keyenv.dev"
+documentation = "https://docs.rs/keyenv"
+readme = "README.md"
+keywords = ["secrets", "environment", "configuration", "security", "keyenv"]
+categories = ["config", "development-tools", "api-bindings"]
+
+[dependencies]
+reqwest = { version = "0.12", features = ["json"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1", features = ["sync", "time"] }
+thiserror = "2"
+chrono = { version = "0.4", features = ["serde"] }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "rt-multi-thread", "macros"] }
+wiremock = "0.6"
+
+[features]
+default = []
+rustls = ["reqwest/rustls-tls"]
+native-tls = ["reqwest/native-tls"]
