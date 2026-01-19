@@ -69,7 +69,9 @@ impl KeyEnvBuilder {
 
     /// Build the KeyEnv client.
     pub fn build(self) -> Result<KeyEnv> {
-        let token = self.token.ok_or_else(|| Error::config("token is required"))?;
+        let token = self
+            .token
+            .ok_or_else(|| Error::config("token is required"))?;
 
         let mut headers = HeaderMap::new();
         headers.insert(
@@ -217,10 +219,12 @@ impl KeyEnv {
 
         // Try to parse error response
         if let Ok(error_resp) = serde_json::from_str::<ApiErrorResponse>(&body) {
-            let message = error_resp
-                .error
-                .or(error_resp.message)
-                .unwrap_or_else(|| status.canonical_reason().unwrap_or("Unknown error").to_string());
+            let message = error_resp.error.or(error_resp.message).unwrap_or_else(|| {
+                status
+                    .canonical_reason()
+                    .unwrap_or("Unknown error")
+                    .to_string()
+            });
 
             return Err(match error_resp.code {
                 Some(code) => Error::api_with_code(status.as_u16(), message, code),

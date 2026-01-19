@@ -135,7 +135,10 @@ async fn test_export_secrets_as_map() {
         .await
         .unwrap();
 
-    assert_eq!(secrets.get("DATABASE_URL").unwrap(), "postgres://localhost/db");
+    assert_eq!(
+        secrets.get("DATABASE_URL").unwrap(),
+        "postgres://localhost/db"
+    );
     assert_eq!(secrets.get("API_KEY").unwrap(), "sk_test_123");
 }
 
@@ -144,7 +147,9 @@ async fn test_get_secret() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/DATABASE_URL"))
+        .and(path(
+            "/projects/proj-1/environments/production/secrets/DATABASE_URL",
+        ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "id": "s1",
             "key": "DATABASE_URL",
@@ -173,7 +178,9 @@ async fn test_set_secret() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("PUT"))
-        .and(path("/projects/proj-1/environments/production/secrets/API_KEY"))
+        .and(path(
+            "/projects/proj-1/environments/production/secrets/API_KEY",
+        ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "id": "s1",
             "key": "API_KEY",
@@ -199,7 +206,9 @@ async fn test_delete_secret() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("DELETE"))
-        .and(path("/projects/proj-1/environments/production/secrets/OLD_KEY"))
+        .and(path(
+            "/projects/proj-1/environments/production/secrets/OLD_KEY",
+        ))
         .respond_with(ResponseTemplate::new(204))
         .expect(1)
         .mount(&mock_server)
@@ -218,7 +227,9 @@ async fn test_bulk_import() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("POST"))
-        .and(path("/projects/proj-1/environments/development/secrets/bulk"))
+        .and(path(
+            "/projects/proj-1/environments/development/secrets/bulk",
+        ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "created": 2,
             "updated": 1,
@@ -282,11 +293,9 @@ async fn test_error_401_unauthorized() {
 
     Mock::given(method("GET"))
         .and(path("/projects"))
-        .respond_with(
-            ResponseTemplate::new(401).set_body_json(serde_json::json!({
-                "error": "Invalid token"
-            })),
-        )
+        .respond_with(ResponseTemplate::new(401).set_body_json(serde_json::json!({
+            "error": "Invalid token"
+        })))
         .expect(1)
         .mount(&mock_server)
         .await;
@@ -295,7 +304,10 @@ async fn test_error_401_unauthorized() {
     let result = client.list_projects().await;
 
     assert!(result.is_err());
-    if let Err(Error::Api { status, message, .. }) = result {
+    if let Err(Error::Api {
+        status, message, ..
+    }) = result
+    {
         assert_eq!(status, 401);
         assert!(message.contains("Invalid token"));
     } else {
@@ -309,11 +321,9 @@ async fn test_error_404_not_found() {
 
     Mock::given(method("GET"))
         .and(path("/projects/nonexistent"))
-        .respond_with(
-            ResponseTemplate::new(404).set_body_json(serde_json::json!({
-                "error": "Project not found"
-            })),
-        )
+        .respond_with(ResponseTemplate::new(404).set_body_json(serde_json::json!({
+            "error": "Project not found"
+        })))
         .expect(1)
         .mount(&mock_server)
         .await;
@@ -332,12 +342,12 @@ async fn test_error_403_forbidden() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/SECRET"))
-        .respond_with(
-            ResponseTemplate::new(403).set_body_json(serde_json::json!({
-                "error": "Access denied"
-            })),
-        )
+        .and(path(
+            "/projects/proj-1/environments/production/secrets/SECRET",
+        ))
+        .respond_with(ResponseTemplate::new(403).set_body_json(serde_json::json!({
+            "error": "Access denied"
+        })))
         .expect(1)
         .mount(&mock_server)
         .await;
