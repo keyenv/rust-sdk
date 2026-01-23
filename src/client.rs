@@ -550,7 +550,7 @@ impl KeyEnv {
     /// Get the current user's permissions for a project.
     pub async fn get_my_permissions(&self, project_id: &str) -> Result<MyPermissionsResponse> {
         let body = self
-            .get(&format!("/projects/{}/permissions/me", project_id))
+            .get(&format!("/projects/{}/my-permissions", project_id))
             .await?;
         Ok(serde_json::from_str(&body)?)
     }
@@ -558,7 +558,7 @@ impl KeyEnv {
     /// Get default permissions for a project.
     pub async fn get_project_defaults(&self, project_id: &str) -> Result<Vec<DefaultPermission>> {
         let body = self
-            .get(&format!("/projects/{}/defaults", project_id))
+            .get(&format!("/projects/{}/permissions/defaults", project_id))
             .await?;
         let resp: DefaultsResponse = serde_json::from_str(&body)?;
         Ok(resp.defaults)
@@ -570,7 +570,7 @@ impl KeyEnv {
         project_id: &str,
         defaults: Vec<DefaultPermission>,
     ) -> Result<()> {
-        let path = format!("/projects/{}/defaults", project_id);
+        let path = format!("/projects/{}/permissions/defaults", project_id);
         let body = serde_json::json!({ "defaults": defaults });
         self.put(&path, &body).await?;
         Ok(())
