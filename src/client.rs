@@ -244,6 +244,11 @@ impl KeyEnv {
         Ok(serde_json::from_str(&body)?)
     }
 
+    /// Validate the token and return user info.
+    pub async fn validate_token(&self) -> Result<CurrentUserResponse> {
+        self.get_current_user().await
+    }
+
     /// List all accessible projects.
     pub async fn list_projects(&self) -> Result<Vec<Project>> {
         let body = self.get("/projects").await?;
@@ -257,6 +262,22 @@ impl KeyEnv {
         Ok(serde_json::from_str(&body)?)
     }
 
+    /// Create a new project.
+    pub async fn create_project(&self, team_id: &str, name: &str) -> Result<Project> {
+        let body = serde_json::json!({
+            "team_id": team_id,
+            "name": name,
+        });
+        let resp = self.post("/projects", &body).await?;
+        Ok(serde_json::from_str(&resp)?)
+    }
+
+    /// Delete a project.
+    pub async fn delete_project(&self, project_id: &str) -> Result<()> {
+        self.delete(&format!("/projects/{}", project_id)).await?;
+        Ok(())
+    }
+
     /// List environments in a project.
     pub async fn list_environments(&self, project_id: &str) -> Result<Vec<Environment>> {
         let body = self
@@ -264,6 +285,34 @@ impl KeyEnv {
             .await?;
         let resp: EnvironmentsResponse = serde_json::from_str(&body)?;
         Ok(resp.environments)
+    }
+
+    /// Create a new environment in a project.
+    pub async fn create_environment(
+        &self,
+        project_id: &str,
+        name: &str,
+        inherits_from: Option<&str>,
+    ) -> Result<Environment> {
+        let mut body = serde_json::json!({
+            "name": name,
+        });
+        if let Some(inherits) = inherits_from {
+            body["inherits_from"] = serde_json::Value::String(inherits.to_string());
+        }
+        let path = format!("/projects/{}/environments", project_id);
+        let resp = self.post(&path, &body).await?;
+        Ok(serde_json::from_str(&resp)?)
+    }
+
+    /// Delete an environment from a project.
+    pub async fn delete_environment(&self, project_id: &str, environment: &str) -> Result<()> {
+        self.delete(&format!(
+            "/projects/{}/environments/{}",
+            project_id, environment
+        ))
+        .await?;
+        Ok(())
     }
 
     /// List secrets (without values) in an environment.
