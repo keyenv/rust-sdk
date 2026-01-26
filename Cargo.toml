@@ -1,6 +1,6 @@
 [package]
 name = "keyenv"
-version = "1.2.0"
+version = "1.2.1"
 edition = "2021"
 authors = ["KeyEnv <support@keyenv.dev>"]
 description = "Official Rust SDK for KeyEnv - Secrets management made simple"
