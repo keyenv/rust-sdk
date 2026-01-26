@@ -75,11 +75,9 @@ async fn test_validate_token() {
     assert!(result.is_ok(), "Token validation failed: {:?}", result.err());
 
     let user_info = result.unwrap();
-    assert_eq!(user_info.auth_type, "service_token");
-    assert!(user_info.service_token.is_some());
-
-    let service_token = user_info.service_token.unwrap();
-    println!("Authenticated as service token: {}", service_token.name);
+    assert!(user_info.is_service_token(), "Expected service token auth");
+    assert_eq!(user_info.auth_type, Some("service_token".to_string()));
+    println!("Authenticated as service token ID: {}", user_info.id);
 }
 
 #[tokio::test]
@@ -125,11 +123,11 @@ async fn test_list_projects() {
     // Should have at least one project (the test project)
     assert!(!projects.is_empty(), "Expected at least one project");
 
-    // Find our test project
-    let test_project = projects.iter().find(|p| p.name == config.project);
+    // Find our test project by slug
+    let test_project = projects.iter().find(|p| p.slug.as_deref() == Some(&config.project));
     assert!(
         test_project.is_some(),
-        "Test project '{}' not found",
+        "Test project with slug '{}' not found",
         config.project
     );
 }
@@ -147,8 +145,9 @@ async fn test_get_project() {
     assert!(result.is_ok(), "Get project failed: {:?}", result.err());
 
     let project = result.unwrap();
-    assert_eq!(project.name, config.project);
-    println!("Project: {} (ID: {})", project.name, project.id);
+    // config.project is the slug, project.name is the display name
+    assert_eq!(project.slug.as_deref(), Some(config.project.as_str()));
+    println!("Project: {} (slug: {:?}, ID: {})", project.name, project.slug, project.id);
     println!("Environments: {:?}", project.environments.len());
 }
 
@@ -199,7 +198,7 @@ async fn test_list_environments() {
     );
 
     for env in &environments {
-        println!("  - {} (order: {})", env.name, env.order);
+        println!("  - {} (order: {:?})", env.name, env.order);
     }
 }
 
@@ -675,12 +674,13 @@ async fn test_get_secret_history() {
 
     let history = result.unwrap();
     println!("Found {} history entries for {}", history.len(), key);
-    assert!(history.len() >= 3, "Expected at least 3 history entries");
+    // API returns history of previous versions (v1, v2), not the current version
+    assert!(history.len() >= 2, "Expected at least 2 history entries");
 
     for entry in &history {
         println!(
-            "  Version {}: {} at {}",
-            entry.version, entry.change_type, entry.created_at
+            "  Version {}: {:?} at {}",
+            entry.version, entry.change_type, entry.changed_at
         );
     }
 

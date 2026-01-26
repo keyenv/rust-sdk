@@ -8,17 +8,23 @@ use serde::{Deserialize, Serialize};
 pub struct User {
     /// User ID.
     pub id: String,
-    /// User email address.
-    pub email: String,
-    /// User's first name.
-    pub first_name: String,
-    /// User's last name.
-    pub last_name: String,
+    /// Clerk user ID (if user auth).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub clerk_id: Option<String>,
+    /// User email address (optional for service tokens).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    /// User's name (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
     /// URL to user's avatar image.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub avatar_url: Option<String>,
     /// When the user was created.
     pub created_at: DateTime<Utc>,
+    /// Teams the user belongs to (for user auth).
+    #[serde(default)]
+    pub teams: Vec<TeamMembership>,
 }
 
 /// A KeyEnv project.
@@ -28,6 +34,9 @@ pub struct Project {
     pub id: String,
     /// Project name.
     pub name: String,
+    /// Project slug (URL-friendly identifier).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub slug: Option<String>,
     /// Project description.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -35,8 +44,9 @@ pub struct Project {
     pub team_id: String,
     /// When the project was created.
     pub created_at: DateTime<Utc>,
-    /// When the project was last updated.
-    pub updated_at: DateTime<Utc>,
+    /// When the project was last updated (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
     /// Environments in this project.
     #[serde(default)]
     pub environments: Vec<Environment>,
@@ -49,20 +59,22 @@ pub struct Environment {
     pub id: String,
     /// Environment name (e.g., "development", "production").
     pub name: String,
-    /// Environment description.
+    /// Environment description (optional, not always returned by API).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// Project ID this environment belongs to.
     pub project_id: String,
-    /// ID of environment this one inherits from.
+    /// ID/name of environment this one inherits from.
+    #[serde(skip_serializing_if = "Option::is_none", alias = "inherits_from_id")]
+    pub inherits_from: Option<String>,
+    /// Display order (optional, not always returned by API).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub inherits_from_id: Option<String>,
-    /// Display order.
-    pub order: i32,
+    pub order: Option<i32>,
     /// When the environment was created.
     pub created_at: DateTime<Utc>,
-    /// When the environment was last updated.
-    pub updated_at: DateTime<Utc>,
+    /// When the environment was last updated (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
 }
 
 /// A secret's metadata without the value.
@@ -77,8 +89,8 @@ pub struct Secret {
     pub description: Option<String>,
     /// Environment ID this secret belongs to.
     pub environment_id: String,
-    /// Type of secret (detected automatically).
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Type of secret (detected automatically). API returns this as "type".
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub secret_type: Option<String>,
     /// Version number.
     pub version: i32,
@@ -100,8 +112,8 @@ pub struct SecretWithValue {
     pub description: Option<String>,
     /// Environment ID this secret belongs to.
     pub environment_id: String,
-    /// Type of secret.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Type of secret. API returns this as "type".
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub secret_type: Option<String>,
     /// Version number.
     pub version: i32,
@@ -125,8 +137,8 @@ pub struct SecretWithInheritance {
     pub description: Option<String>,
     /// Environment ID this secret belongs to.
     pub environment_id: String,
-    /// Type of secret.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Type of secret. API returns this as "type".
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub secret_type: Option<String>,
     /// Version number.
     pub version: i32,
@@ -151,8 +163,8 @@ pub struct SecretWithValueAndInheritance {
     pub description: Option<String>,
     /// Environment ID this secret belongs to.
     pub environment_id: String,
-    /// Type of secret.
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// Type of secret. API returns this as "type".
+    #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub secret_type: Option<String>,
     /// Version number.
     pub version: i32,
@@ -279,17 +291,20 @@ pub struct SecretHistory {
     pub id: String,
     /// Secret ID.
     pub secret_id: String,
-    /// Secret key.
-    pub key: String,
+    /// Secret key (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub key: Option<String>,
     /// Version number.
     pub version: i32,
     /// User ID who made the change.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub changed_by: Option<String>,
-    /// Type of change.
-    pub change_type: String,
-    /// When the change was made.
-    pub created_at: DateTime<Utc>,
+    /// Type of change (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub change_type: Option<String>,
+    /// When the change was made (API returns as changed_at or created_at).
+    #[serde(alias = "created_at")]
+    pub changed_at: DateTime<Utc>,
 }
 
 /// A team.
@@ -301,8 +316,25 @@ pub struct Team {
     pub name: String,
     /// When the team was created.
     pub created_at: DateTime<Utc>,
-    /// When the team was last updated.
-    pub updated_at: DateTime<Utc>,
+    /// When the team was last updated (optional, not always returned by API).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub updated_at: Option<DateTime<Utc>>,
+}
+
+/// A team membership.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct TeamMembership {
+    /// Team ID.
+    pub team_id: String,
+    /// User ID.
+    pub user_id: String,
+    /// Role in the team.
+    pub role: String,
+    /// When the membership was created.
+    pub created_at: DateTime<Utc>,
+    /// Team details (optional, populated in some queries).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub team: Option<Team>,
 }
 
 /// Information about a service token.
@@ -327,17 +359,49 @@ pub struct ServiceToken {
 }
 
 /// Response containing current user or service token information.
+/// This is a flat structure that contains fields for both user and service token auth.
+/// For user auth: id, clerk_id, email, created_at, teams are populated.
+/// For service token auth: id, team_id, project_ids, scopes, auth_type are populated.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CurrentUserResponse {
-    /// Type of authentication ("user" or "service_token").
-    #[serde(rename = "type")]
-    pub auth_type: String,
-    /// User information (if authenticated as user).
+    /// User/Token ID.
+    pub id: String,
+    /// Type of authentication ("service_token" for service tokens, absent for user auth).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub user: Option<User>,
-    /// Service token information (if authenticated as service token).
+    pub auth_type: Option<String>,
+    /// Clerk user ID (for user auth).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub service_token: Option<ServiceToken>,
+    pub clerk_id: Option<String>,
+    /// User email address (for user auth).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub email: Option<String>,
+    /// When the user/token was created (optional for service tokens).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<DateTime<Utc>>,
+    /// Teams the user belongs to (for user auth).
+    #[serde(default)]
+    pub teams: Vec<TeamMembership>,
+    /// Team ID (for service token auth).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub team_id: Option<String>,
+    /// Project IDs (for service token auth).
+    #[serde(default)]
+    pub project_ids: Vec<String>,
+    /// Scopes (for service token auth).
+    #[serde(default)]
+    pub scopes: Vec<String>,
+}
+
+impl CurrentUserResponse {
+    /// Check if this is a service token authentication.
+    pub fn is_service_token(&self) -> bool {
+        self.auth_type.as_deref() == Some("service_token")
+    }
+
+    /// Check if this is a user authentication.
+    pub fn is_user(&self) -> bool {
+        !self.is_service_token()
+    }
 }
 
 // Internal API response types
@@ -374,6 +438,11 @@ pub(crate) struct DefaultsResponse {
 #[derive(Debug, Deserialize)]
 pub(crate) struct HistoryResponse {
     pub history: Vec<SecretHistory>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct SecretResponse {
+    pub secret: SecretWithValueAndInheritance,
 }
 
 #[derive(Debug, Deserialize)]

@@ -240,7 +240,7 @@ impl KeyEnv {
 
     /// Get current user or service token information.
     pub async fn get_current_user(&self) -> Result<CurrentUserResponse> {
-        let body = self.get("/me").await?;
+        let body = self.get("/users/me").await?;
         Ok(serde_json::from_str(&body)?)
     }
 
@@ -374,14 +374,15 @@ impl KeyEnv {
         project_id: &str,
         environment: &str,
         key: &str,
-    ) -> Result<SecretWithValue> {
+    ) -> Result<SecretWithValueAndInheritance> {
         let body = self
             .get(&format!(
                 "/projects/{}/environments/{}/secrets/{}",
                 project_id, environment, key
             ))
             .await?;
-        Ok(serde_json::from_str(&body)?)
+        let resp: SecretResponse = serde_json::from_str(&body)?;
+        Ok(resp.secret)
     }
 
     /// Set (create or update) a secret.
