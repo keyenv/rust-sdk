@@ -41,7 +41,7 @@ async fn test_list_projects() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects"))
+        .and(path("/api/v1/projects"))
         .and(header("Authorization", "Bearer test-token"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "projects": [
@@ -66,7 +66,7 @@ async fn test_get_project() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1"))
+        .and(path("/api/v1/projects/proj-1"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "id": "proj-1",
             "name": "Project 1",
@@ -94,7 +94,7 @@ async fn test_export_secrets() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "DATABASE_URL", "value": "postgres://localhost/db", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
@@ -118,7 +118,7 @@ async fn test_export_secrets_as_map() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "DATABASE_URL", "value": "postgres://localhost/db", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
@@ -148,16 +148,18 @@ async fn test_get_secret() {
 
     Mock::given(method("GET"))
         .and(path(
-            "/projects/proj-1/environments/production/secrets/DATABASE_URL",
+            "/api/v1/projects/proj-1/environments/production/secrets/DATABASE_URL",
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "id": "s1",
-            "key": "DATABASE_URL",
-            "value": "postgres://localhost/db",
-            "environment_id": "env-1",
-            "version": 1,
-            "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z"
+            "secret": {
+                "id": "s1",
+                "key": "DATABASE_URL",
+                "value": "postgres://localhost/db",
+                "environment_id": "env-1",
+                "version": 1,
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z"
+            }
         })))
         .expect(1)
         .mount(&mock_server)
@@ -179,7 +181,7 @@ async fn test_set_secret() {
 
     Mock::given(method("PUT"))
         .and(path(
-            "/projects/proj-1/environments/production/secrets/API_KEY",
+            "/api/v1/projects/proj-1/environments/production/secrets/API_KEY",
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "id": "s1",
@@ -207,7 +209,7 @@ async fn test_delete_secret() {
 
     Mock::given(method("DELETE"))
         .and(path(
-            "/projects/proj-1/environments/production/secrets/OLD_KEY",
+            "/api/v1/projects/proj-1/environments/production/secrets/OLD_KEY",
         ))
         .respond_with(ResponseTemplate::new(204))
         .expect(1)
@@ -228,7 +230,7 @@ async fn test_bulk_import() {
 
     Mock::given(method("POST"))
         .and(path(
-            "/projects/proj-1/environments/development/secrets/bulk",
+            "/api/v1/projects/proj-1/environments/development/secrets/bulk",
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "created": 2,
@@ -264,7 +266,7 @@ async fn test_generate_env_file() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "SIMPLE", "value": "simple_value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
@@ -292,7 +294,7 @@ async fn test_error_401_unauthorized() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects"))
+        .and(path("/api/v1/projects"))
         .respond_with(ResponseTemplate::new(401).set_body_json(serde_json::json!({
             "error": "Invalid token"
         })))
@@ -320,7 +322,7 @@ async fn test_error_404_not_found() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/nonexistent"))
+        .and(path("/api/v1/projects/nonexistent"))
         .respond_with(ResponseTemplate::new(404).set_body_json(serde_json::json!({
             "error": "Project not found"
         })))
@@ -343,7 +345,7 @@ async fn test_error_403_forbidden() {
 
     Mock::given(method("GET"))
         .and(path(
-            "/projects/proj-1/environments/production/secrets/SECRET",
+            "/api/v1/projects/proj-1/environments/production/secrets/SECRET",
         ))
         .respond_with(ResponseTemplate::new(403).set_body_json(serde_json::json!({
             "error": "Access denied"
@@ -366,7 +368,7 @@ async fn test_caching() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "CACHED_VAR", "value": "cached_value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
@@ -396,7 +398,7 @@ async fn test_cache_clearing() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "VAR", "value": "value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
@@ -428,7 +430,7 @@ async fn test_load_env() {
     let mock_server = setup_mock_server().await;
 
     Mock::given(method("GET"))
-        .and(path("/projects/proj-1/environments/production/secrets/export"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
             "secrets": [
                 {"id": "s1", "key": "TEST_RUST_VAR_1", "value": "value1", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
@@ -462,6 +464,85 @@ async fn test_secret_input_constructors() {
     assert_eq!(with_desc.key, "KEY");
     assert_eq!(with_desc.value, "VALUE");
     assert_eq!(with_desc.description.unwrap(), "A description");
+}
+
+#[tokio::test]
+async fn test_api_v1_prefix_in_requests() {
+    let mock_server = setup_mock_server().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/users/me"))
+        .and(header("Authorization", "Bearer test-token"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "id": "user-1",
+            "email": "test@test.com",
+            "auth_type": "user"
+        })))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let client = create_test_client(&mock_server.uri());
+    let result = client.get_current_user().await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_generate_env_file_dollar_escaping() {
+    let mock_server = setup_mock_server().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "secrets": [
+                {"id": "s1", "key": "DOLLAR_VAR", "value": "price=$100", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+                {"id": "s2", "key": "SIMPLE", "value": "no_special", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
+            ]
+        })))
+        .expect(1)
+        .mount(&mock_server)
+        .await;
+
+    let client = create_test_client(&mock_server.uri());
+    let content = client
+        .generate_env_file("proj-1", "production")
+        .await
+        .unwrap();
+
+    assert!(content.contains("DOLLAR_VAR=\"price=\\$100\"\n"));
+    assert!(content.contains("SIMPLE=no_special\n"));
+}
+
+#[tokio::test]
+async fn test_cache_expired_entry_cleanup() {
+    let mock_server = setup_mock_server().await;
+
+    Mock::given(method("GET"))
+        .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
+            "secrets": [
+                {"id": "s1", "key": "VAR", "value": "value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
+            ]
+        })))
+        .expect(2) // Called twice: initial + after cache expires
+        .mount(&mock_server)
+        .await;
+
+    let client = KeyEnv::builder()
+        .token("test-token")
+        .base_url(&mock_server.uri())
+        .cache_ttl(Duration::from_millis(50))
+        .build()
+        .unwrap();
+
+    // First call - populates cache
+    let _ = client.export_secrets("proj-1", "production").await.unwrap();
+
+    // Wait for cache to expire
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    // Second call - expired entry should be cleaned up and re-fetched
+    let _ = client.export_secrets("proj-1", "production").await.unwrap();
 }
 
 #[tokio::test]

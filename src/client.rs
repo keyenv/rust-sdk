@@ -17,6 +17,9 @@ pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
 /// SDK version.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
+/// API version prefix for all requests.
+const API_PREFIX: &str = "/api/v1";
+
 /// Builder for creating a KeyEnv client.
 #[derive(Debug, Clone)]
 pub struct KeyEnvBuilder {
@@ -134,10 +137,20 @@ impl KeyEnv {
                 return serde_json::from_str(&entry.data).ok();
             }
         }
+        // Drop the read lock before acquiring write lock for cleanup
+        drop(cache);
+
+        // Lazy cleanup: remove the expired entry
+        let mut cache = self.cache.write().await;
+        if let Some(entry) = cache.get(key) {
+            if Instant::now() >= entry.expires_at {
+                cache.remove(key);
+            }
+        }
         None
     }
 
-    /// Store in cache.
+    /// Store in cache, pruning expired entries.
     async fn set_cached<T: serde::Serialize>(&self, key: &str, data: &T) {
         if self.cache_ttl.is_zero() {
             return;
@@ -145,11 +158,16 @@ impl KeyEnv {
 
         if let Ok(json) = serde_json::to_string(data) {
             let mut cache = self.cache.write().await;
+            let now = Instant::now();
+
+            // Prune expired entries to prevent memory leaks
+            cache.retain(|_, entry| now < entry.expires_at);
+
             cache.insert(
                 key.to_string(),
                 CacheEntry {
                     data: json,
-                    expires_at: Instant::now() + self.cache_ttl,
+                    expires_at: now + self.cache_ttl,
                 },
             );
         }
@@ -182,28 +200,28 @@ impl KeyEnv {
 
     /// Make a GET request.
     async fn get(&self, path: &str) -> Result<String> {
-        let url = format!("{}{}", self.base_url, path);
+        let url = format!("{}{}{}", self.base_url, API_PREFIX, path);
         let response = self.client.get(&url).send().await?;
         self.handle_response(response).await
     }
 
     /// Make a POST request.
     async fn post<T: serde::Serialize>(&self, path: &str, body: &T) -> Result<String> {
-        let url = format!("{}{}", self.base_url, path);
+        let url = format!("{}{}{}", self.base_url, API_PREFIX, path);
         let response = self.client.post(&url).json(body).send().await?;
         self.handle_response(response).await
     }
 
     /// Make a PUT request.
     async fn put<T: serde::Serialize>(&self, path: &str, body: &T) -> Result<String> {
-        let url = format!("{}{}", self.base_url, path);
+        let url = format!("{}{}{}", self.base_url, API_PREFIX, path);
         let response = self.client.put(&url).json(body).send().await?;
         self.handle_response(response).await
     }
 
     /// Make a DELETE request.
     async fn delete(&self, path: &str) -> Result<String> {
-        let url = format!("{}{}", self.base_url, path);
+        let url = format!("{}{}{}", self.base_url, API_PREFIX, path);
         let response = self.client.delete(&url).send().await?;
         self.handle_response(response).await
     }
