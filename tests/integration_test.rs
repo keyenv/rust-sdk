@@ -841,6 +841,81 @@ async fn test_cache_invalidation_on_mutation() {
 }
 
 // ============================================================================
+// Special Characters Tests
+// ============================================================================
+
+#[tokio::test]
+async fn test_special_characters_in_values() {
+    let Some(config) = get_test_config() else {
+        println!("Skipping: KEYENV_API_URL or KEYENV_TOKEN not set");
+        return;
+    };
+
+    let client = config.create_client();
+
+    // Test connection string with special characters
+    let key_conn = unique_key("RUST_SDK_TEST_SPECIAL");
+    let conn_value = "postgresql://user:p@ss@localhost:5432/db?sslmode=require";
+
+    println!("Creating secret with connection string: {}", key_conn);
+    client
+        .set_secret(&config.project, "development", &key_conn, conn_value)
+        .await
+        .unwrap();
+
+    let secret = client
+        .get_secret(&config.project, "development", &key_conn)
+        .await
+        .unwrap();
+    assert_eq!(secret.value, conn_value, "Connection string should round-trip correctly");
+
+    // Test multiline value
+    let key_multi = unique_key("RUST_SDK_TEST_SPECIAL");
+    let multi_value = "line1\nline2\nline3";
+
+    println!("Creating secret with multiline value: {}", key_multi);
+    client
+        .set_secret(&config.project, "development", &key_multi, multi_value)
+        .await
+        .unwrap();
+
+    let secret = client
+        .get_secret(&config.project, "development", &key_multi)
+        .await
+        .unwrap();
+    assert_eq!(secret.value, multi_value, "Multiline value should round-trip correctly");
+
+    // Test JSON string
+    let key_json = unique_key("RUST_SDK_TEST_SPECIAL");
+    let json_value = r#"{"key":"value","nested":{"a":1}}"#;
+
+    println!("Creating secret with JSON value: {}", key_json);
+    client
+        .set_secret(&config.project, "development", &key_json, json_value)
+        .await
+        .unwrap();
+
+    let secret = client
+        .get_secret(&config.project, "development", &key_json)
+        .await
+        .unwrap();
+    assert_eq!(secret.value, json_value, "JSON string should round-trip correctly");
+
+    // Cleanup
+    let _ = client
+        .delete_secret(&config.project, "development", &key_conn)
+        .await;
+    let _ = client
+        .delete_secret(&config.project, "development", &key_multi)
+        .await;
+    let _ = client
+        .delete_secret(&config.project, "development", &key_json)
+        .await;
+
+    println!("Special characters test completed");
+}
+
+// ============================================================================
 // Comprehensive Cleanup Test (run last)
 // ============================================================================
 
@@ -862,6 +937,7 @@ async fn test_zz_cleanup_test_secrets() {
 
     let test_prefixes = [
         "RUST_SDK_TEST_",
+        "RUST_SDK_TEST_SPECIAL_",
         "RUST_SDK_DESC_TEST_",
         "BULK_",
         "BULK_OVERWRITE_",
