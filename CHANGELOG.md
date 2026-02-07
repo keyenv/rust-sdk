@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.2](https://github.com/keyenv/rust-sdk/compare/keyenv-v1.2.1...keyenv-v1.2.2) (2026-02-07)
+
+
+### Bug Fixes
+
+* improve base URL handling in KeyEnvBuilder ([0720c47](https://github.com/keyenv/rust-sdk/commit/0720c47a87b089f5fabfee551f1d1fb677d7383d))
+* security and correctness fixes with test coverage ([23e997b](https://github.com/keyenv/rust-sdk/commit/23e997b15b27bc81bd70afc29c42b3c6acce26fb))
+
 ## [1.2.1](https://github.com/keyenv/rust-sdk/compare/keyenv-v1.2.0...keyenv-v1.2.1) (2026-01-26)
 
 
