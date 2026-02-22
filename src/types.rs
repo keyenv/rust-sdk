@@ -406,6 +406,11 @@ impl CurrentUserResponse {
 
 // Internal API response types
 #[derive(Debug, Deserialize)]
+pub(crate) struct DataResponse<T> {
+    pub data: T,
+}
+
+#[derive(Debug, Deserialize)]
 pub(crate) struct ProjectsResponse {
     pub projects: Vec<Project>,
 }

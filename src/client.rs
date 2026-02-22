@@ -260,7 +260,8 @@ impl KeyEnv {
     /// Get current user or service token information.
     pub async fn get_current_user(&self) -> Result<CurrentUserResponse> {
         let body = self.get("/users/me").await?;
-        Ok(serde_json::from_str(&body)?)
+        let envelope: DataResponse<CurrentUserResponse> = serde_json::from_str(&body)?;
+        Ok(envelope.data)
     }
 
     /// Validate the token and return user info.
@@ -278,7 +279,8 @@ impl KeyEnv {
     /// Get a project by ID.
     pub async fn get_project(&self, project_id: &str) -> Result<Project> {
         let body = self.get(&format!("/projects/{}", project_id)).await?;
-        Ok(serde_json::from_str(&body)?)
+        let envelope: DataResponse<Project> = serde_json::from_str(&body)?;
+        Ok(envelope.data)
     }
 
     /// Create a new project.
@@ -288,7 +290,8 @@ impl KeyEnv {
             "name": name,
         });
         let resp = self.post("/projects", &body).await?;
-        Ok(serde_json::from_str(&resp)?)
+        let envelope: DataResponse<Project> = serde_json::from_str(&resp)?;
+        Ok(envelope.data)
     }
 
     /// Delete a project.
@@ -321,7 +324,8 @@ impl KeyEnv {
         }
         let path = format!("/projects/{}/environments", project_id);
         let resp = self.post(&path, &body).await?;
-        Ok(serde_json::from_str(&resp)?)
+        let envelope: DataResponse<Environment> = serde_json::from_str(&resp)?;
+        Ok(envelope.data)
     }
 
     /// Delete an environment from a project.

@@ -68,15 +68,17 @@ async fn test_get_project() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "id": "proj-1",
-            "name": "Project 1",
-            "team_id": "team-1",
-            "created_at": "2024-01-01T00:00:00Z",
-            "updated_at": "2024-01-01T00:00:00Z",
-            "environments": [
-                {"id": "env-1", "name": "development", "project_id": "proj-1", "order": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
-                {"id": "env-2", "name": "production", "project_id": "proj-1", "order": 2, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
-            ]
+            "data": {
+                "id": "proj-1",
+                "name": "Project 1",
+                "team_id": "team-1",
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-01-01T00:00:00Z",
+                "environments": [
+                    {"id": "env-1", "name": "development", "project_id": "proj-1", "order": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
+                    {"id": "env-2", "name": "production", "project_id": "proj-1", "order": 2, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
+                ]
+            }
         })))
         .expect(1)
         .mount(&mock_server)
@@ -474,9 +476,11 @@ async fn test_api_v1_prefix_in_requests() {
         .and(path("/api/v1/users/me"))
         .and(header("Authorization", "Bearer test-token"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "id": "user-1",
-            "email": "test@test.com",
-            "auth_type": "user"
+            "data": {
+                "id": "user-1",
+                "email": "test@test.com",
+                "auth_type": "user"
+            }
         })))
         .expect(1)
         .mount(&mock_server)
