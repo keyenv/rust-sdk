@@ -235,9 +235,11 @@ async fn test_bulk_import() {
             "/api/v1/projects/proj-1/environments/development/secrets/bulk",
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "created": 2,
-            "updated": 1,
-            "skipped": 0
+            "data": {
+                "created": 2,
+                "updated": 1,
+                "skipped": 0
+            }
         })))
         .expect(1)
         .mount(&mock_server)

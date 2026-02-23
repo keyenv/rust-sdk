@@ -506,7 +506,8 @@ impl KeyEnv {
         });
 
         let resp_body = self.post(&path, &body).await?;
-        let result: BulkImportResult = serde_json::from_str(&resp_body)?;
+        let envelope: DataResponse<BulkImportResult> = serde_json::from_str(&resp_body)?;
+        let result = envelope.data;
 
         // Clear cache for this environment
         self.clear_cache(Some(project_id), Some(environment)).await;

@@ -412,41 +412,49 @@ pub(crate) struct DataResponse<T> {
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ProjectsResponse {
+    #[serde(rename = "data")]
     pub projects: Vec<Project>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct EnvironmentsResponse {
+    #[serde(rename = "data")]
     pub environments: Vec<Environment>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct SecretsResponse {
+    #[serde(rename = "data")]
     pub secrets: Vec<SecretWithInheritance>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct SecretsExportResponse {
+    #[serde(rename = "data")]
     pub secrets: Vec<SecretWithValueAndInheritance>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct PermissionsResponse {
+    #[serde(rename = "data")]
     pub permissions: Vec<Permission>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct DefaultsResponse {
+    #[serde(rename = "data")]
     pub defaults: Vec<DefaultPermission>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct HistoryResponse {
+    #[serde(rename = "data")]
     pub history: Vec<SecretHistory>,
 }
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct SecretResponse {
+    #[serde(rename = "data")]
     pub secret: SecretWithValueAndInheritance,
 }
 
