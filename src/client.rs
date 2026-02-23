@@ -613,11 +613,11 @@ impl KeyEnv {
         permissions: Vec<PermissionInput>,
     ) -> Result<()> {
         let path = format!(
-            "/projects/{}/environments/{}/permissions/bulk",
+            "/projects/{}/environments/{}/permissions",
             project_id, environment
         );
         let body = serde_json::json!({ "permissions": permissions });
-        self.post(&path, &body).await?;
+        self.put(&path, &body).await?;
         Ok(())
     }
 
