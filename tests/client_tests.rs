@@ -44,7 +44,7 @@ async fn test_list_projects() {
         .and(path("/api/v1/projects"))
         .and(header("Authorization", "Bearer test-token"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "projects": [
+            "data": [
                 {"id": "proj-1", "name": "Project 1", "team_id": "team-1", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "proj-2", "name": "Project 2", "team_id": "team-1", "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
@@ -98,7 +98,7 @@ async fn test_export_secrets() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "DATABASE_URL", "value": "postgres://localhost/db", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s2", "key": "API_KEY", "value": "sk_test_123", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
@@ -122,7 +122,7 @@ async fn test_export_secrets_as_map() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "DATABASE_URL", "value": "postgres://localhost/db", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s2", "key": "API_KEY", "value": "sk_test_123", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
@@ -153,7 +153,7 @@ async fn test_get_secret() {
             "/api/v1/projects/proj-1/environments/production/secrets/DATABASE_URL",
         ))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secret": {
+            "data": {
                 "id": "s1",
                 "key": "DATABASE_URL",
                 "value": "postgres://localhost/db",
@@ -272,7 +272,7 @@ async fn test_generate_env_file() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "SIMPLE", "value": "simple_value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s2", "key": "WITH_SPACES", "value": "value with spaces", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s3", "key": "WITH_QUOTES", "value": "value \"quoted\"", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
@@ -374,7 +374,7 @@ async fn test_caching() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "CACHED_VAR", "value": "cached_value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
         })))
@@ -404,7 +404,7 @@ async fn test_cache_clearing() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "VAR", "value": "value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
         })))
@@ -436,7 +436,7 @@ async fn test_load_env() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "TEST_RUST_VAR_1", "value": "value1", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s2", "key": "TEST_RUST_VAR_2", "value": "value2", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
@@ -500,7 +500,7 @@ async fn test_generate_env_file_dollar_escaping() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "DOLLAR_VAR", "value": "price=$100", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"},
                 {"id": "s2", "key": "SIMPLE", "value": "no_special", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
@@ -526,7 +526,7 @@ async fn test_cache_expired_entry_cleanup() {
     Mock::given(method("GET"))
         .and(path("/api/v1/projects/proj-1/environments/production/secrets/export"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
-            "secrets": [
+            "data": [
                 {"id": "s1", "key": "VAR", "value": "value", "environment_id": "env-1", "version": 1, "created_at": "2024-01-01T00:00:00Z", "updated_at": "2024-01-01T00:00:00Z"}
             ]
         })))

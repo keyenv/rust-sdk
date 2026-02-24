@@ -55,7 +55,10 @@ impl KeyEnvBuilder {
     /// Set the API base URL (optional).
     pub fn base_url(mut self, url: impl Into<String>) -> Self {
         let u = url.into();
-        self.base_url = u.trim_end_matches('/').trim_end_matches("/api/v1").to_string();
+        self.base_url = u
+            .trim_end_matches('/')
+            .trim_end_matches("/api/v1")
+            .to_string();
         self
     }
 

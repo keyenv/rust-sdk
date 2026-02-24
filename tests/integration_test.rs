@@ -72,7 +72,11 @@ async fn test_validate_token() {
     let client = config.create_client();
     let result = client.validate_token().await;
 
-    assert!(result.is_ok(), "Token validation failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Token validation failed: {:?}",
+        result.err()
+    );
 
     let user_info = result.unwrap();
     assert!(user_info.is_service_token(), "Expected service token auth");
@@ -124,7 +128,9 @@ async fn test_list_projects() {
     assert!(!projects.is_empty(), "Expected at least one project");
 
     // Find our test project by slug
-    let test_project = projects.iter().find(|p| p.slug.as_deref() == Some(&config.project));
+    let test_project = projects
+        .iter()
+        .find(|p| p.slug.as_deref() == Some(&config.project));
     assert!(
         test_project.is_some(),
         "Test project with slug '{}' not found",
@@ -147,7 +153,10 @@ async fn test_get_project() {
     let project = result.unwrap();
     // config.project is the slug, project.name is the display name
     assert_eq!(project.slug.as_deref(), Some(config.project.as_str()));
-    println!("Project: {} (slug: {:?}, ID: {})", project.name, project.slug, project.id);
+    println!(
+        "Project: {} (slug: {:?}, ID: {})",
+        project.name, project.slug, project.id
+    );
     println!("Environments: {:?}", project.environments.len());
 }
 
@@ -468,9 +477,18 @@ async fn test_bulk_import() {
         .export_secrets_as_map(&config.project, "development")
         .await
         .unwrap();
-    assert_eq!(exported.get(&key1).map(|s| s.as_str()), Some("bulk_value_1"));
-    assert_eq!(exported.get(&key2).map(|s| s.as_str()), Some("bulk_value_2"));
-    assert_eq!(exported.get(&key3).map(|s| s.as_str()), Some("bulk_value_3"));
+    assert_eq!(
+        exported.get(&key1).map(|s| s.as_str()),
+        Some("bulk_value_1")
+    );
+    assert_eq!(
+        exported.get(&key2).map(|s| s.as_str()),
+        Some("bulk_value_2")
+    );
+    assert_eq!(
+        exported.get(&key3).map(|s| s.as_str()),
+        Some("bulk_value_3")
+    );
 
     // Cleanup
     let _ = client
@@ -552,7 +570,10 @@ async fn test_load_env() {
         .unwrap();
 
     // Load secrets into environment
-    let count = client.load_env(&config.project, "development").await.unwrap();
+    let count = client
+        .load_env(&config.project, "development")
+        .await
+        .unwrap();
     println!("Loaded {} secrets into environment", count);
     assert!(count > 0);
 
@@ -670,7 +691,11 @@ async fn test_get_secret_history() {
         .get_secret_history(&config.project, "development", &key)
         .await;
 
-    assert!(result.is_ok(), "Get secret history failed: {:?}", result.err());
+    assert!(
+        result.is_ok(),
+        "Get secret history failed: {:?}",
+        result.err()
+    );
 
     let history = result.unwrap();
     println!("Found {} history entries for {}", history.len(), key);
@@ -737,9 +762,7 @@ async fn test_multiple_environments() {
     let _ = client
         .delete_secret(&config.project, "development", &key)
         .await;
-    let _ = client
-        .delete_secret(&config.project, "staging", &key)
-        .await;
+    let _ = client.delete_secret(&config.project, "staging", &key).await;
 
     println!("Multi-environment test completed");
 }
@@ -770,7 +793,11 @@ async fn test_error_types() {
     // Test 404 - Not Found
     let client = config.create_client();
     let result = client
-        .get_secret(&config.project, "development", "DEFINITELY_NOT_EXISTS_12345")
+        .get_secret(
+            &config.project,
+            "development",
+            "DEFINITELY_NOT_EXISTS_12345",
+        )
         .await;
     assert!(result.is_err());
     if let Err(ref e) = result {
@@ -867,7 +894,10 @@ async fn test_special_characters_in_values() {
         .get_secret(&config.project, "development", &key_conn)
         .await
         .unwrap();
-    assert_eq!(secret.value, conn_value, "Connection string should round-trip correctly");
+    assert_eq!(
+        secret.value, conn_value,
+        "Connection string should round-trip correctly"
+    );
 
     // Test multiline value
     let key_multi = unique_key("RUST_SDK_TEST_SPECIAL");
@@ -883,7 +913,10 @@ async fn test_special_characters_in_values() {
         .get_secret(&config.project, "development", &key_multi)
         .await
         .unwrap();
-    assert_eq!(secret.value, multi_value, "Multiline value should round-trip correctly");
+    assert_eq!(
+        secret.value, multi_value,
+        "Multiline value should round-trip correctly"
+    );
 
     // Test JSON string
     let key_json = unique_key("RUST_SDK_TEST_SPECIAL");
@@ -899,7 +932,10 @@ async fn test_special_characters_in_values() {
         .get_secret(&config.project, "development", &key_json)
         .await
         .unwrap();
-    assert_eq!(secret.value, json_value, "JSON string should round-trip correctly");
+    assert_eq!(
+        secret.value, json_value,
+        "JSON string should round-trip correctly"
+    );
 
     // Cleanup
     let _ = client
